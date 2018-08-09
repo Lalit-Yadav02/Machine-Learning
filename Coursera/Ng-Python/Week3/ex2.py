@@ -92,7 +92,7 @@ plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
 
 # Regularized logistic regression
 data2 = loaddata('data/ex2data2.txt', ',')
-X = data[:,0:2]
+X = data2[:,0:2]
 y = np.c_[data2[:,2]]
 
 plotdata(data2, 'Microchip Test 1', 'Microchip Test 2', 'y = 1', 'y = 2')
@@ -109,5 +109,31 @@ def costFunctionReg(theta, reg, *args):
         return np.inf
     return J[0]
 
+
+def gradientReg(theta, reg, *args):
+    m = y.size
+    h = sigmoid(XX.dot(theta.reshape(-1, 1)))
+    grad = (1/m) * XX.T.dot(h-y) + (reg/m)*np.r_[[[0]], theta[1:].reshape(-1, 1)]
+    return grad.flatten()
+
 initial_theta = np.zeros(XX.shape[1])
 costFunctionReg(initial_theta, 1, XX, y)
+
+# Plot the data
+fig, axes = plt.subplots(1, 3, sharey=True, figsize=(17, 5))
+
+for i, C in enumerate([0, 1, 100]):
+    res2 = minimize(costFunctionReg, initial_theta, args=(C, XX, y), method=None, jac=gradientReg, options={'maxiter': 3000})
+    # Accuracy
+    accuracy = 100 * sum(predict(res2.x, XX) == y.ravel())/y.size
+    
+    # plot
+    plotdata(data2, 'Microchip Test 1', 'Microchip Test 2', 'y = 1', 'y = 2', axes.flatten()[i])
+    
+    x1_min, x1_max = X[:,0].min(), X[:,0].max()
+    x2_min, x2_max = X[:,1].min(), X[:,1].max()
+    xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max), np.linspace(x2_min, x2_max))
+    h = sigmoid(poly.fit_transform(np.c_[xx1.ravel(), xx2.ravel()]).dot(res2.x))
+    h = h.reshape(xx1.shape)
+    axes.flatten()[i].contour(xx1, xx2, h, [0.5], linewidths=1, colors='g');       
+    axes.flatten()[i].set_title('Train accuracy {}% with Lambda = {}'.format(np.round(accuracy, decimals=2), C))
