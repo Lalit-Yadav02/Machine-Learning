@@ -87,7 +87,7 @@ def compute_cost(theta_flatten, X_flatten, _y, _lambda = 0.):
     m = n_training_samples
     for irow in range(m):
         row = _X[irow]
-        hs = propagate_forward(row, thetas)[-1][1]
+        hs = propagateForward(row, thetas)[-1][1]
         tmp_y = np.zeros((10, 1))
         tmp_y[_y[irow] - 1] = 1
         cost = -tmp_y.T.dot(np.log(hs)) - (1-tmp_y.T).dot(np.log(1-hs))
@@ -100,19 +100,100 @@ def compute_cost(theta_flatten, X_flatten, _y, _lambda = 0.):
     
     return total_cost + total_reg
 
-def propagate_forward(row, thetas):
+def propagate_forward(row, Thetas):
     features = row
     zs_as_per_layer = []
     for i in range(len(thetas)):
-        theta = thetas[i]
+        theta = Thetas[i]
         z = theta.dot(features).reshpae((theta.shape[0], 1))
         a = expit(z)
         zs_as_per_layer.append((z, a))
-        if i == len(thetas) - 1:
+        if i == len(Thetas) - 1:
             return np.array(zs_as_per_layer)
         a = np.insert(a, 0, 1)
         features = a
-       
+
 
 thetas = [Theta1, Theta2]
 cost = compute_cost(flatten_params(thetas), flatten_X(X), y)
+regularized_cost = compute_cost(flatten_params(thetas), flatten_X(X), y, 1.0)
+
+# Implementing Backpropagation
+
+# Sigmoid Gradient
+def sigmoid_gradient(z):
+    dummy = expit(z)
+    return dummy * (1 - dummy)
+
+
+
+
+#####
+def genRandThetas():
+    epsilon_init = 0.12
+    theta1_shape = (hidden_layer_size, input_layer_size+1)
+    theta2_shape = (output_layer_size, hidden_layer_size+1)
+    rand_thetas = [ np.random.rand( *theta1_shape ) * 2 * epsilon_init - epsilon_init, \
+                    np.random.rand( *theta2_shape ) * 2 * epsilon_init - epsilon_init]
+    return rand_thetas
+
+def backPropagate(mythetas_flattened,myX_flattened,myy,mylambda=0.):
+    
+    # First unroll the parameters
+    mythetas = reshapeParams(mythetas_flattened)
+    
+    # Now unroll X
+    myX = reshapeX(myX_flattened)
+
+    #Note: the Delta matrices should include the bias unit
+    #The Delta matrices have the same shape as the theta matrices
+    Delta1 = np.zeros((hidden_layer_size,input_layer_size+1))
+    Delta2 = np.zeros((output_layer_size,hidden_layer_size+1))
+
+    # Loop over the training points (rows in myX, already contain bias unit)
+    m = n_training_samples
+    for irow in xrange(m):
+        myrow = myX[irow]
+        a1 = myrow.reshape((input_layer_size+1,1))
+        # propagateForward returns (zs, activations) for each layer excluding the input layer
+        temp = propagateForward(myrow,mythetas)
+        z2 = temp[0][0]
+        a2 = temp[0][1]
+        z3 = temp[1][0]
+        a3 = temp[1][1]
+        tmpy = np.zeros((10,1))
+        tmpy[myy[irow]-1] = 1
+        delta3 = a3 - tmpy 
+        delta2 = mythetas[1].T[1:,:].dot(delta3)*sigmoidGradient(z2) #remove 0th element
+        a2 = np.insert(a2,0,1,axis=0)
+        Delta1 += delta2.dot(a1.T) #(25,1)x(1,401) = (25,401) (correct)
+        Delta2 += delta3.dot(a2.T) #(10,1)x(1,25) = (10,25) (should be 10,26)
+        
+    D1 = Delta1/float(m)
+    D2 = Delta2/float(m)
+    
+    #Regularization:
+    D1[:,1:] = D1[:,1:] + (float(mylambda)/m)*mythetas[0][:,1:]
+    D2[:,1:] = D2[:,1:] + (float(mylambda)/m)*mythetas[1][:,1:]
+    
+    return flattenParams([D1, D2]).flatten()
+
+#Actually compute D matrices for the Thetas provided
+flattenedD1D2 = backPropagate(flattenParams(myThetas),flattenX(X),y,mylambda=0.)
+D1, D2 = reshapeParams(flattenedD1D2)
+
+def checkGradient(mythetas,myDs,myX,myy,mylambda=0.):
+    myeps = 0.0001
+    flattened = flattenParams(mythetas)
+    flattenedDs = flattenParams(myDs)
+    myX_flattened = flattenX(myX)
+    n_elems = len(flattened) 
+    #Pick ten random elements, compute numerical gradient, compare to respective D's
+    for i in xrange(10):
+        x = int(np.random.rand()*n_elems)
+        epsvec = np.zeros((n_elems,1))
+        epsvec[x] = myeps
+        cost_high = computeCost(flattened + epsvec,myX_flattened,myy,mylambda)
+        cost_low  = computeCost(flattened - epsvec,myX_flattened,myy,mylambda)
+        mygrad = (cost_high - cost_low) / float(2*myeps)
+        print "Element: %d. Numerical Gradient = %f. BackProp Gradient = %f."%(x,mygrad,flattenedDs[x])
