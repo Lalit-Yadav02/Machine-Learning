@@ -116,6 +116,7 @@ test_acc = clf_spam.score(spam_test['Xtest'], spam_test['ytest'].ravel())
 print('Training accuracy = {}'.format(train_acc * 100))
 print('Test accuracy = {}'.format(test_acc * 100))
 
+
 from sklearn.feature_extraction import DictVectorizer
 w = clf_spam.coef_
 top10 = np.argsort(w)[-10:]
