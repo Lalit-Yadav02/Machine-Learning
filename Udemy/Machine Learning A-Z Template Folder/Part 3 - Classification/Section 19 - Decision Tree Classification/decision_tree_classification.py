@@ -1,4 +1,12 @@
-# Decision Tree Classification
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep 19 08:20:05 2018
+
+@author: lality
+
+algorithm: Decision Tree Classification
+"""
 
 # Importing the libraries
 import numpy as np
@@ -20,9 +28,10 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# Fitting Decision Tree Classification to the Training set
+# Fitting classifier to the Training set
+# Decision Tree Classifier
 from sklearn.tree import DecisionTreeClassifier
-classifier = DecisionTreeClassifier(criterion = 'entropy', random_state = 0)
+classifier = DecisionTreeClassifier(criterion= "entropy", random_state = 0)
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -44,7 +53,7 @@ plt.ylim(X2.min(), X2.max())
 for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
                 c = ListedColormap(('red', 'green'))(i), label = j)
-plt.title('Decision Tree Classification (Training set)')
+plt.title('Decision Tree Classifier (Training set)')
 plt.xlabel('Age')
 plt.ylabel('Estimated Salary')
 plt.legend()
@@ -62,8 +71,20 @@ plt.ylim(X2.min(), X2.max())
 for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
                 c = ListedColormap(('red', 'green'))(i), label = j)
-plt.title('Decision Tree Classification (Test set)')
+plt.title('Decision Tree Classifier (Test set)')
 plt.xlabel('Age')
 plt.ylabel('Estimated Salary')
 plt.legend()
 plt.show()
+
+
+# Plotting the Graph
+from sklearn import tree
+from sklearn.externals.six import StringIO
+from IPython.display import Image
+import pydot
+dot_data = StringIO()
+tree.export_graphviz(classifier, out_file= dot_data, feature_names= ['Age', 'Salary'],
+                     class_names= ['Yes', 'No'], filled= True, rounded=True, special_characters= True)
+graph = pydot.graph_from_dot_data(dot_data.getvalue()) # Review this
+Image(graph.create_png())
