@@ -19,7 +19,7 @@ dataset = pd.read_csv('Ads_CTR_Optimisation.csv')
 X = np.array(dataset)
 
 # Implementing the UCB
-import random
+import math
 N = X.shape[0]
 d = X.shape[1]
 ads_selected = []
