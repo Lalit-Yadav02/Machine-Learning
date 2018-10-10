@@ -1,4 +1,12 @@
-# Kernel PCA
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 10 19:14:23 2018
+
+@author: lality
+
+algorithm: Kernel principal component analysis
+"""
 
 # Importing the libraries
 import numpy as np
@@ -11,7 +19,7 @@ X = dataset.iloc[:, [2, 3]].values
 y = dataset.iloc[:, 4].values
 
 # Splitting the dataset into the Training set and Test set
-from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
 
 # Feature Scaling
