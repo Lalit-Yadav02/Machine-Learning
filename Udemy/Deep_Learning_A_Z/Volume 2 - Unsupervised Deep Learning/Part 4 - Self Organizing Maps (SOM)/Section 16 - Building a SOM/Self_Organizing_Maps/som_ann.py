@@ -7,6 +7,8 @@ Created on Tue Oct  9 17:50:14 2018
 
 algorithm: Self Organizing Map with Artificial Neural Network(Unsupervised to Supervised Neural Network)
 """
+# %matplotlib auto interactive plots
+
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
