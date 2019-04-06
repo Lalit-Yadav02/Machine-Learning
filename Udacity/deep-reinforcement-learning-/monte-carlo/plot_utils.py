@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+
 def plot_blackjack_values(V):
 
     def get_Z(x, y, usable_ace):
